@@ -13,7 +13,4 @@ scraper = "0.14.0"
 [profile.release]
 lto = true
 opt-level = 'z'
-codegen-units = 1
-panic = 'abort'
-strip = "symbols"
 
