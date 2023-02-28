@@ -1,0 +1,19 @@
+[package]
+name = "property-spider"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.23"
+reqwest = { version = "0.11.14", features = ["blocking"] }
+scraper = "0.14.0"
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+panic = 'abort'
+strip = "symbols"
+
