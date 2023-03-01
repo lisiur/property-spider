@@ -9,34 +9,61 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - target: x86_64-pc-windows-gnu
+          - build: windows
+            target: x86_64-pc-windows-gnu
             archive: zip
-          - target: x86_64-unknown-linux-musl
+            platform: windows-latest
+            archive-name: property-spider-windows.7z
+          - build: linux
+            target: x86_64-unknown-linux-musl
             archive: tar.gz
-          - target: x86_64-apple-darwin
+            platform: ubuntu-latest
+            archive-name: property-spider-linux.tar.gz
+          - build: macos
+            target: x86_64-apple-darwin
             archive: zip
+            platform: macos-latest
+            archive-name: property-spider-macos.tar.gz
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@master
-      - uses: rust-build/rust-build.action@v1.4.0
-        id: compile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions-rs/toolchain@v1
         with:
-          TOOLCHAIN_VERSION: stable
-          RUSTTARGET: ${{ matrix.target }}
-          ARCHIVE_TYPES: ${{ matrix.archive }}
-      - name: upload artifact
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: ${{ matrix.target }}
+
+      - run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Strip binary (linux and macos)
+        if: matrix.build == 'linux' || matrix.build == 'macos'
+        run: strip "target/${{ matrix.target }}/release/property-spider"
+
+      - name: Build archive
+        shell: bash
+        run: |
+          mkdir archive
+          cd archive
+          if [ "${{ matrix.build }}" = "windows" ]; then
+            cp "../target/${{ matrix.target }}/release/property-spider.exe" ./
+            7z a "${{ matrix.archive-name }}" property-spider.exe
+          else
+            cp "../target/${{ matrix.target }}/release/property-spider" ./
+            tar -czf "${{ matrix.archive-name }}" property-spider
+          fi
+
+      - name: Create release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            ${{ steps.compile.outputs.BUILT_ARCHIVE }}
-            ${{ steps.compile.outputs.BUILT_CHECKSUM }}
+            archive/${{ matrix.archive-name }}
