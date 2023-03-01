@@ -20,7 +20,7 @@ jobs:
             platform: windows-latest
             archive-name: property-spider-${{ github.ref_name }}-windows.7z
           - build: linux
-            target: x86_64-unknown-linux-musl
+            target: x86_64-unknown-linux-gnu
             archive: tar.gz
             platform: ubuntu-latest
             archive-name: property-spider-${{ github.ref_name }}-linux.tar.gz
