@@ -6,32 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  create-release:
-    name: release ${{ matrix.target }}
-    runs-on: ubuntu-latest
-    outputs:
-      release_id: ${{ steps.create-release.outputs.result }}
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: get version
-        run: npm install -g toml && echo "::set-output name=version::$(node -p "require('toml').parse(require('fs').readFileSync('Cargo.toml').toString()).version")"
-      - name: create release
-        id: create-release
-        uses: actions/create-release@v1
-        with:
-          draft: false
-          prerelease: false
-          release_name: PropertySpider v${{ steps.version.outputs.version }}
-          tag_name: ${{ github.ref }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
   build:
-    needs: create-release
     strategy:
       fail-fast: false
       matrix:
