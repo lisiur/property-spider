@@ -18,17 +18,17 @@ jobs:
             target: x86_64-pc-windows-gnu
             archive: zip
             platform: windows-latest
-            archive-name: property-spider-${{ github.ref }}-windows.7z
+            archive-name: property-spider-${{ github.ref_name }}-windows.7z
           - build: linux
             target: x86_64-unknown-linux-musl
             archive: tar.gz
             platform: ubuntu-latest
-            archive-name: property-spider-${{ github.ref }}-linux.tar.gz
+            archive-name: property-spider-${{ github.ref_name }}-linux.tar.gz
           - build: macos
             target: x86_64-apple-darwin
             archive: zip
             platform: macos-latest
-            archive-name: property-spider-${{ github.ref }}-macos.tar.gz
+            archive-name: property-spider-${{ github.ref_name }}-macos.tar.gz
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -45,7 +45,7 @@ jobs:
         if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y openssl
+          sudo apt-get install -y musl-tools pkg-config
 
       - run: cargo build --release --target ${{ matrix.target }}
 
