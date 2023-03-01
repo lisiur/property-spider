@@ -1,31 +1,64 @@
+name: Release
+
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  release:
+  create-release:
     name: release ${{ matrix.target }}
     runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create-release.outputs.result }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: get version
+        run: npm install -g toml && echo "::set-output name=version::$(node -p "require('toml').parse(require('fs').readFileSync('Cargo.toml').toString()).version")"
+      - name: create release
+        id: create-release
+        uses: actions/create-release@v1
+        with:
+          draft: false
+          prerelease: false
+          release_name: PropertySpider v${{ steps.version.outputs.version }}
+          tag_name: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  build:
+    needs: create-release
     strategy:
       fail-fast: false
       matrix:
         include:
           - target: x86_64-pc-windows-gnu
+            archive: zip
           - target: x86_64-unknown-linux-musl
+            archive: tar.gz
           - target: x86_64-apple-darwin
+            archive: zip
+
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@master
-      - name: Compile
+      - uses: rust-build/rust-build.action@v1.4.0
         id: compile
-        uses: rust-build/rust-build.action@v1.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           TOOLCHAIN_VERSION: stable
           RUSTTARGET: ${{ matrix.target }}
-          UPLOAD_MODE: none
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
+          ARCHIVE_TYPES: ${{ matrix.archive }}
+      - name: upload artifact
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Binary
-          path: |
+          files: |
             ${{ steps.compile.outputs.BUILT_ARCHIVE }}
             ${{ steps.compile.outputs.BUILT_CHECKSUM }}
