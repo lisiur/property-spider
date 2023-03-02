@@ -34,12 +34,11 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: ${{ matrix.target }}
+      - name: Setup Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          rustup default stable
+          rustup target add ${{ matrix.target }}
 
       - name: Install dependencies
         if: matrix.platform == 'ubuntu-latest'
