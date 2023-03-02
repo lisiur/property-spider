@@ -22,8 +22,13 @@ jobs:
           - build: linux
             target: x86_64-unknown-linux-gnu
             archive: tar.gz
-            platform: ubuntu-latest
-            archive-name: property-spider-${{ github.ref_name }}-linux.tar.gz
+            platform: ubuntu-22.04
+            archive-name: property-spider-${{ github.ref_name }}-ubuntu-22.04.tar.gz
+          - build: linux
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+            platform: ubuntu-18.04
+            archive-name: property-spider-${{ github.ref_name }}-ubuntu-18.04.tar.gz
           - build: macos
             target: x86_64-apple-darwin
             archive: zip
